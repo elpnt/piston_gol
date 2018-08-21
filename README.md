@@ -8,4 +8,4 @@ cargo run
 ```
 
 ## Future
-Concurrency with crossbeam crate or GPGPU
+Concurrency with `crossbeam` crate or GPGPU
