@@ -6,3 +6,6 @@ After cloning this repository and moving to the directory,
 ```
 cargo run
 ```
+
+## Future
+Concurrency with crossbeam crate or GPGPU
