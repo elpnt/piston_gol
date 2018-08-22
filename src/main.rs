@@ -6,27 +6,17 @@ use rand::prelude::*;
 use rayon::prelude::*;
 use piston_window::*;
 
-const NUM_ROW: u32 = 120;
-const NUM_COL: u32 = 200;
-const CELL_SIZE: f64 = 2.0;
+const NUM_ROW: usize = 160;
+const NUM_COL: usize = 240;
+const CELL_SIZE: f64 = 4.0;
 
 pub struct State {
-    n_row: u32,
-    n_col: u32,
+    n_row: usize,
+    n_col: usize,
     cells: Vec<bool>,
 }
 
-fn create_state(n_row: u32, n_col: u32) -> State {
-    /*
-    let mut cells = vec![false; n_row as usize * n_col as usize];
-    let mut rng = thread_rng();
-    for i in 0..cells.len() {
-       let a: f32 = rng.gen();
-       if a > 0.5 {
-           cells[i] = true;
-       }
-    }
-    */
+fn create_state(n_row: usize, n_col: usize) -> State {
     let mut cells = vec![];
     let mut rng = thread_rng();
     for _ in 0 .. n_row*n_col {
@@ -46,11 +36,17 @@ fn create_state(n_row: u32, n_col: u32) -> State {
 }
 
 impl State {
-    fn get_index(&self, row:u32, col: u32) -> usize {
+    fn get_index(&self, row:usize, col: usize) -> usize {
         (row * self.n_col + col) as usize
     }
 
-    fn live_neighbors_count(&self, row: u32, col: u32) -> u8 {
+    fn index_to_position(&self, idx: usize) -> (usize, usize) {
+        let row = idx as usize / self.n_col;
+        let col = idx as usize % self.n_col;
+        (row, col)
+    }
+
+    fn live_neighbors_count(&self, row: usize, col: usize) -> u8 {
         let mut count: u8 = 0;
         for i in [self.n_row-1, 0, 1].iter().cloned() {
             for j in [self.n_col - 1, 0, 1].iter().cloned() {
@@ -72,30 +68,31 @@ impl State {
     fn next(&mut self) {
         let mut next_cells = self.cells.clone();
 
-        for row in 0 .. self.n_row {
-            for col in 0 .. self.n_col {
-                let idx = self.get_index(row, col);
-                let cell = self.cells[idx];
+        next_cells
+            .par_iter_mut()
+            .enumerate()
+            .for_each(|(i, cell)| {
+                let (row, col) = self.index_to_position(i);
                 let live_neighbors = self.live_neighbors_count(row, col);
-
-                let next_cell = match (cell, live_neighbors) {
+                
+                let next_cell = match (*cell, live_neighbors) {
                     (true, x) if x < 2    => false,
                     (true, 2) | (true, 3) => true,
                     (true, x) if x > 3    => false,
                     (false, 3)            => true,
                     (otherwise, _)        => otherwise,
                 };
-                next_cells[idx] = next_cell;
-            }
-        }
+                *cell = next_cell;
+            });
+
         self.cells = next_cells;
     }
 
 }
 
 fn main() {
-    let window_height: u32 = NUM_ROW * CELL_SIZE as u32;
-    let window_width: u32 = NUM_COL * CELL_SIZE as u32;
+    let window_height: u32 = NUM_ROW as u32 * CELL_SIZE as u32;
+    let window_width: u32 = NUM_COL as u32 * CELL_SIZE as u32;
     let mut window: PistonWindow = WindowSettings::new(
         "piston GoL",[window_width, window_height]
         ).build().unwrap();
@@ -105,13 +102,13 @@ fn main() {
     while let Some(e) = window.next() {
         window.draw_2d(&e, |c, g| {
             // Background
-            clear([1.0, 1.0, 1.0, 1.0], g); // white
+            clear([0.0, 0.0, 0.0, 1.0], g); // Black 
             // Render the cells
             for i in 0..state.cells.len() {
                 let x_pos = i % NUM_COL as usize;
                 let y_pos = i / NUM_COL as usize;
                 if state.cells[i] {
-                    rectangle([0.0, 0.0, 0.0, 1.0], // black
+                    rectangle([1.0, 1.0, 1.0, 1.0], // White 
                               [x_pos as f64 * CELL_SIZE,
                                y_pos as f64 * CELL_SIZE,
                                CELL_SIZE, CELL_SIZE],
