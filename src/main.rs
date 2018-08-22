@@ -1,12 +1,14 @@
 extern crate rand;
+extern crate rayon;
 extern crate piston_window;
 
 use rand::prelude::*;
+use rayon::prelude::*;
 use piston_window::*;
 
-const NUM_ROW: u32 = 100;
-const NUM_COL: u32 = 100;
-const CELL_SIZE: f64 = 5.0;
+const NUM_ROW: u32 = 120;
+const NUM_COL: u32 = 200;
+const CELL_SIZE: f64 = 2.0;
 
 pub struct State {
     n_row: u32,
@@ -15,6 +17,7 @@ pub struct State {
 }
 
 fn create_state(n_row: u32, n_col: u32) -> State {
+    /*
     let mut cells = vec![false; n_row as usize * n_col as usize];
     let mut rng = thread_rng();
     for i in 0..cells.len() {
@@ -22,6 +25,17 @@ fn create_state(n_row: u32, n_col: u32) -> State {
        if a > 0.5 {
            cells[i] = true;
        }
+    }
+    */
+    let mut cells = vec![];
+    let mut rng = thread_rng();
+    for _ in 0 .. n_row*n_col {
+        let a: f32 = rng.gen();
+        if a > 0.5 {
+            cells.push(true);
+        } else {
+            cells.push(false);
+        }
     }
 
      State {
@@ -44,8 +58,8 @@ impl State {
                     continue;
                 }
 
-                let neighbor_row = (row + j) % self.n_row;
-                let neighbor_col = (col + i) % self.n_col;
+                let neighbor_row = (row + i) % self.n_row;
+                let neighbor_col = (col + j) % self.n_col;
                 let idx = self.get_index(neighbor_row, neighbor_col);
                 if self.cells[idx] {
                     count += 1;
@@ -83,22 +97,21 @@ fn main() {
     let window_height: u32 = NUM_ROW * CELL_SIZE as u32;
     let window_width: u32 = NUM_COL * CELL_SIZE as u32;
     let mut window: PistonWindow = WindowSettings::new(
-        "piston GoL",[window_height, window_width])
-        .build().unwrap();
+        "piston GoL",[window_width, window_height]
+        ).build().unwrap();
 
     let mut state = create_state(NUM_ROW, NUM_COL);
-    // state.next();
 
     while let Some(e) = window.next() {
         window.draw_2d(&e, |c, g| {
             // Background
-            clear([1.0, 1.0, 1.0, 1.0], g);
+            clear([1.0, 1.0, 1.0, 1.0], g); // white
             // Render the cells
             for i in 0..state.cells.len() {
                 let x_pos = i % NUM_COL as usize;
                 let y_pos = i / NUM_COL as usize;
                 if state.cells[i] {
-                    rectangle([0.0, 0.0, 0.0, 1.0],
+                    rectangle([0.0, 0.0, 0.0, 1.0], // black
                               [x_pos as f64 * CELL_SIZE,
                                y_pos as f64 * CELL_SIZE,
                                CELL_SIZE, CELL_SIZE],
@@ -132,3 +145,4 @@ fn test_live_neighbors_count() {
     assert_eq!(state.live_neighbors_count(0, 0), 4);
     assert_eq!(state.live_neighbors_count(3, 3), 3);
 }
+
