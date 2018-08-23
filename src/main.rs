@@ -92,8 +92,8 @@ impl State {
 }
 
 fn main() {
-    let window_height: u32 = NUM_ROW as u32 * CELL_SIZE as u32;
-    let window_width: u32 = NUM_COL as u32 * CELL_SIZE as u32;
+    let window_height = NUM_ROW as u32 * CELL_SIZE as u32;
+    let window_width = NUM_COL as u32 * CELL_SIZE as u32;
     let mut window: PistonWindow = WindowSettings::new(
         "piston GoL",[window_width, window_height]
         ).build().unwrap();
