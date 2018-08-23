@@ -8,7 +8,7 @@ use piston_window::*;
 
 const NUM_ROW: usize = 160;
 const NUM_COL: usize = 240;
-const CELL_SIZE: f64 = 4.0;
+const CELL_SIZE: f64 = 2.0;
 
 pub struct State {
     n_row: usize,
@@ -36,8 +36,9 @@ fn create_state(n_row: usize, n_col: usize) -> State {
 }
 
 impl State {
-    fn get_index(&self, row:usize, col: usize) -> usize {
-        (row * self.n_col + col) as usize
+
+    fn get_index(&self, row: usize, col: usize) -> usize {
+        row * self.n_col + col
     }
 
     fn index_to_position(&self, idx: usize) -> (usize, usize) {
