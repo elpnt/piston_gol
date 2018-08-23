@@ -3,7 +3,7 @@ extern crate rand;
 use rand::prelude::*;
 use state::State;
 
-fn postion_to_index(n_col: usize, row: usize, col: usize) -> usize {
+fn position_to_index(n_col: usize, row: usize, col: usize) -> usize {
     row * n_col + col
 }
 
@@ -48,7 +48,46 @@ pub fn glider_gun(n_row: usize, n_col: usize) -> State {
     ];
 
     for position in initial_cells {
-        let idx = postion_to_index(n_col, position.0, position.1);
+        let idx = position_to_index(n_col, position.0, position.1);
+        cells[idx] = true;
+    }
+
+    State {
+        n_row,
+        n_col,
+        cells,
+    }
+}
+
+pub fn puffer_train(n_row: usize, n_col: usize) -> State {
+    let mut cells = vec![false; n_row*n_col];
+    
+    let train_cells = vec![
+        (3, 0), (4, 0), (5, 0),
+        (3, 1), (4, 1), (5, 1),
+        (4, 2),
+        (1, 4), (3, 4), (5, 4), (7, 4),
+        (0, 5), (0, 6), (0, 7), (0, 8), (1, 8), (2, 8),
+        (8, 5), (8, 6), (8, 7), (8, 8), (7, 8), (6, 8),
+        (3, 7), (5, 7)
+    ];
+
+    let smoke_cells = vec![
+        (1, 0), (0, 1), (0, 2), (0, 3), (0, 4), (1, 4), (2, 4), (3, 3),
+        (15, 0), (16, 1), (16, 2), (16, 3), (16, 4), (15, 4), (14, 4), (13, 3)
+    ];
+    
+    let row_offset: usize = 10;
+    
+    for position in smoke_cells {
+        let idx = position_to_index(n_col, position.0 + row_offset, position.1);
+        cells[idx] = true;
+    }
+
+    for position in train_cells {
+        let idx = position_to_index(n_col,
+                                    position.0 + row_offset + 4,
+                                    position.1 + 5);
         cells[idx] = true;
     }
 
