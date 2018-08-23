@@ -2,94 +2,16 @@ extern crate rand;
 extern crate rayon;
 extern crate piston_window;
 
-use rand::prelude::*;
+mod state;
+mod patterns;
+
 use rayon::prelude::*;
 use piston_window::*;
 
-const NUM_ROW: usize = 160;
-const NUM_COL: usize = 240;
-const CELL_SIZE: f64 = 2.0;
+const NUM_ROW: usize = 120;
+const NUM_COL: usize = 180;
+const CELL_SIZE: f64 = 4.0;
 
-pub struct State {
-    n_row: usize,
-    n_col: usize,
-    cells: Vec<bool>,
-}
-
-fn create_state(n_row: usize, n_col: usize) -> State {
-    let mut cells = vec![];
-    let mut rng = thread_rng();
-    for _ in 0 .. n_row*n_col {
-        let a: f32 = rng.gen();
-        if a > 0.5 {
-            cells.push(true);
-        } else {
-            cells.push(false);
-        }
-    }
-
-     State {
-         n_row,
-         n_col,
-         cells,
-     }
-}
-
-impl State {
-
-    fn get_index(&self, row: usize, col: usize) -> usize {
-        row * self.n_col + col
-    }
-
-    fn index_to_position(&self, idx: usize) -> (usize, usize) {
-        let row = idx as usize / self.n_col;
-        let col = idx as usize % self.n_col;
-        (row, col)
-    }
-
-    fn live_neighbors_count(&self, row: usize, col: usize) -> u8 {
-        let mut count: u8 = 0;
-        for i in [self.n_row-1, 0, 1].iter().cloned() {
-            for j in [self.n_col - 1, 0, 1].iter().cloned() {
-                if i == 0 && j == 0 {
-                    continue;
-                }
-
-                let neighbor_row = (row + i) % self.n_row;
-                let neighbor_col = (col + j) % self.n_col;
-                let idx = self.get_index(neighbor_row, neighbor_col);
-                if self.cells[idx] {
-                    count += 1;
-                }
-            }
-        }
-        count
-    }
-
-    fn next(&mut self) {
-        let mut next_cells = self.cells.clone();
-
-        next_cells
-            .par_iter_mut()
-            .enumerate()
-            .for_each(|(i, cell)| {
-                let (row, col) = self.index_to_position(i);
-                let live_neighbors = self.live_neighbors_count(row, col);
-                
-                let next_cell = match (*cell, live_neighbors) {
-                    (true, x) if x < 2    => false,
-                    (true, 2) | (true, 3) => true,
-                    (true, x) if x > 3    => false,
-                    (false, 3)            => true,
-                    (otherwise, _)        => otherwise,
-                };
-                *cell = next_cell;
-            });
-
-        self.cells = next_cells;
-    }
-
-}
 
 fn main() {
     let window_height = NUM_ROW as u32 * CELL_SIZE as u32;
@@ -98,7 +20,8 @@ fn main() {
         "piston GoL",[window_width, window_height]
         ).build().unwrap();
 
-    let mut state = create_state(NUM_ROW, NUM_COL);
+    // let mut state = patterns::random_state(NUM_ROW, NUM_COL);
+    let mut state = patterns::glider_gun(NUM_ROW, NUM_COL);
 
     while let Some(e) = window.next() {
         window.draw_2d(&e, |c, g| {
