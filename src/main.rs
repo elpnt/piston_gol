@@ -5,7 +5,6 @@ extern crate piston_window;
 mod state;
 mod patterns;
 
-use rayon::prelude::*;
 use piston_window::*;
 
 const NUM_ROW: usize = 120;
