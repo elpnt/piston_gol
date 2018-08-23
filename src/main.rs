@@ -44,7 +44,10 @@ fn main() {
     let window_width = n_col as u32 * cell_size as u32;
     let mut window: PistonWindow = WindowSettings::new(
         "piston GoL",[window_width, window_height]
-        ).build().unwrap();
+        )
+        .exit_on_esc(true)
+        .build()
+        .unwrap();
 
     while let Some(e) = window.next() {
         window.draw_2d(&e, |c, g| {
